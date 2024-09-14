@@ -1,16 +1,8 @@
 using HarmonyLib;
-using PlayerEquipment;
 using PlayerState;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
-using Unity.Entities;
-using UnityEngine.SocialPlatforms;
 using UnityEngine;
-using PugTilemap.Grid;
 using System.Threading;
-using System.Reflection;
 
 #nullable enable
 
@@ -21,20 +13,6 @@ namespace CrossHotbar.EquipFromInventory {
         internal static readonly object _lock = new();
         internal static EquipmentSlot? _slot = null;
         public static EquipmentSlot? Slot => _slot;
-
-        [HarmonyPatch(nameof(global::PlayerController.isLocal), MethodType.Getter)]
-        [HarmonyPostfix]
-        static private bool GetIsLocal(global::PlayerController __instance, ref bool __result) {
-            Debug.Log("Hello from the local");
-            if (__result is false) {
-                return false;
-            }
-            return false;
-        }
-
-        [HarmonyPatch(nameof(GetSlotTypeForObjectType))]
-        [HarmonyReversePatch]
-        static private Type GetSlotTypeForObjectType(global::PlayerController __instance, ObjectType objectType, ObjectDataCD objectData) => throw new NotImplementedException();
 
         [HarmonyPatch(nameof(global::PlayerController.equippedSlotIndex), MethodType.Setter)]
         [HarmonyReversePatch]
@@ -180,20 +158,72 @@ namespace CrossHotbar.EquipFromInventory {
         }
 
         [HarmonyPatch(nameof(global::PlayerController.UpdateEquippedSlotVisuals))]
-        [HarmonyFinalizer]
-        static void UpdateEquippedSlotVisuals(global::PlayerController __instance) {
-            if (__instance.equippedSlotIndex < global::PlayerController.MAX_EQUIPMENT_SLOTS) {
+        [HarmonyPrefix]
+        static void UpdateEquippedSlotVisuals_Prefix(global::PlayerController __instance, out int? __state) {
+            if (__instance.equippedSlotIndex < global::PlayerController.MAX_EQUIPMENT_SLOTS
+                || __instance.entityExist is false
+                || _slot == null
+                || __instance.isLocal is false
+            ) {
+                __state = null;
                 return;
             }
 
-            if (_slot == null) {
-                return;
-            }
+            var currentEquipment = EntityUtility.GetComponentData<EquippedObjectCD>(__instance.entity, __instance.world);
+            //#!#!#!#! IMPORTANT: For completion, rollback the data after
+            __state = currentEquipment.equippedSlotIndex;
+            currentEquipment.equippedSlotIndex = __instance.equippedSlotIndex;
+            EntityUtility.SetComponentData(__instance.entity, __instance.world, currentEquipment);
+            __instance.isLocal = false;
 
-            if (__instance.isLocal && __instance.clientInput.equippedSlotIndex != __instance.equippedSlotIndex) {
+            var isShielding = EntityUtility.GetComponentData<PlayerRoutineCD>(__instance.entity, __instance.world).activeRoutine == PlayerRoutines.Shielding
+                && EntityUtility.GetComponentData<UseOffHandStateCD>(__instance.entity, __instance.world).shieldedAmount > 0f;
+            var isItemBroken = __instance.HeldItemIsBroken();
+
+            var visuallyEquipped = isShielding ? __instance.GetOffHand() : __instance.playerInventoryHandler.GetContainedObjectData(__instance.equippedSlotIndex);
+
+            var objectID = (isShielding, isItemBroken) switch {
+                (true, _) or (false, false) => visuallyEquipped.objectID,
+                (false, true) => ObjectID.None
+            };
+            var variation = visuallyEquipped.variation;
+            var amount = visuallyEquipped.amount;
+            var auxDataIndex = visuallyEquipped.auxDataIndex;
+
+
+            if ((int)__instance.clientInput.equippedSlotIndex != __instance.equippedSlotIndex
+                || __instance.visuallyEquippedContainedObject.objectID != objectID
+                || __instance.visuallyEquippedContainedObject.variation != variation
+                || __instance.visuallyEquippedContainedObject.amount != amount
+                || __instance.visuallyEquippedContainedObject.auxDataIndex != auxDataIndex
+            ) {
                 __instance.clientInput.equippedSlotIndex = (byte)__instance.equippedSlotIndex;
                 _slot.OnEquip(__instance);
+
+                Debug.Log(objectID);
+                Debug.Log(variation);
+                Debug.Log(amount);
+                Debug.Log(auxDataIndex);
             }
         }
+
+
+        [HarmonyPatch(nameof(global::PlayerController.UpdateEquippedSlotVisuals))]
+        [HarmonyPostfix]
+        static void UpdateEquippedSlotVisuals_Postfix(global::PlayerController __instance, int? __state) {
+            if (__state == null) {
+                return;
+            }
+
+            var currentEquipment = EntityUtility.GetComponentData<EquippedObjectCD>(__instance.entity, __instance.world);
+            currentEquipment.equippedSlotIndex = __state.Value;
+            EntityUtility.SetComponentData(__instance.entity, __instance.world, currentEquipment);
+            __instance.isLocal = true;
+        }
+
+
+        [HarmonyPatch(nameof(GetSlotTypeForObjectType))]
+        [HarmonyReversePatch]
+        static private Type GetSlotTypeForObjectType(global::PlayerController __instance, ObjectType objectType, ObjectDataCD objectData) => throw new NotImplementedException();
     }
 }
