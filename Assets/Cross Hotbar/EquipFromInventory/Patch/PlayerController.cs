@@ -12,6 +12,7 @@ namespace CrossHotbar.EquipFromInventory {
     class PlayerController {
         internal static readonly object _lock = new();
         internal static EquipmentSlot? _slot = null;
+        internal static int _hotbar_lastUsed = 0;
         public static EquipmentSlot? Slot => _slot;
 
         [HarmonyPatch(nameof(global::PlayerController.equippedSlotIndex), MethodType.Setter)]
@@ -21,6 +22,10 @@ namespace CrossHotbar.EquipFromInventory {
         [HarmonyPatch(nameof(global::PlayerController.OnFree))]
         [HarmonyPrefix]
         static void OnFree(PlayerController __instance) {
+            FreeState();
+        }
+
+        private static void FreeState() {
             var slot = Interlocked.Exchange(ref _slot, null);
             if (slot != null) {
                 slot.Free();
@@ -35,6 +40,7 @@ namespace CrossHotbar.EquipFromInventory {
             }
 
             if (__instance.equippedSlotIndex < global::PlayerController.MAX_EQUIPMENT_SLOTS) {
+                _hotbar_lastUsed = __instance.equippedSlotIndex;
                 Manager.ui.itemSlotsBar.itemSlots[__instance.equippedSlotIndex].OnSetSlotInactivate();
             }
 
@@ -73,6 +79,9 @@ namespace CrossHotbar.EquipFromInventory {
 
             if (_slot.inventoryIndexReference != __instance.equippedSlotIndex) {
                 Debug.LogError("The slot is managed but the player holds a different item than tracked");
+                Debug.LogError($"Index before slot management: ${_hotbar_lastUsed}");
+                Debug.LogError($"Index of managed slot: ${_slot.inventoryIndexReference}");
+                Debug.LogError($"Current index of equipped slot: ${__instance.equippedSlotIndex}");
                 return true;
             }
 
@@ -87,10 +96,7 @@ namespace CrossHotbar.EquipFromInventory {
                 return;
             }
 
-            var slot = Interlocked.Exchange(ref _slot, null);
-            if (slot != null) {
-                slot.Free();
-            }
+            FreeState();
         }
 
         private static EquipmentSlot CreateEquipmentSlot(global::PlayerController player, int index) {
@@ -207,7 +213,6 @@ namespace CrossHotbar.EquipFromInventory {
             }
         }
 
-
         [HarmonyPatch(nameof(global::PlayerController.UpdateEquippedSlotVisuals))]
         [HarmonyPostfix]
         static void UpdateEquippedSlotVisuals_Postfix(global::PlayerController __instance, int? __state) {
@@ -221,6 +226,32 @@ namespace CrossHotbar.EquipFromInventory {
             __instance.isLocal = true;
         }
 
+        [HarmonyPatch("UpdateInventoryStuff")]
+        [HarmonyPrefix]
+        private static void UpdateInventoryStuff_Prefix(global::PlayerController __instance, out int __state) {
+            __state = __instance.equippedSlotIndex;
+            if (_slot == null) {
+                return;
+            }
+
+            SetEquippedSlotIndex(__instance, _hotbar_lastUsed);
+        }
+
+        [HarmonyPatch("UpdateInventoryStuff")]
+        [HarmonyPostfix]
+        private static void UpdateInventoryStuff_Postfix(global::PlayerController __instance, int __state) {
+            if (_slot == null) {
+                return;
+            }
+
+            //Possibly left / right movement on the hotbar
+            if (__instance.equippedSlotIndex != _hotbar_lastUsed) {
+                FreeState();
+                return;
+            }
+
+            SetEquippedSlotIndex(__instance, __state);
+        }
 
         [HarmonyPatch(nameof(GetSlotTypeForObjectType))]
         [HarmonyReversePatch]
