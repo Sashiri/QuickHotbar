@@ -1,29 +1,36 @@
+using CrossHotbar.InventoryObjectSlotBar;
 using PugMod;
 using Unity.Assertions;
-using UnityEditor;
 using UnityEngine;
 
 public class CrossHotbarMod : IMod {
     private GameObject crossbarUIPrefab;
-
     private GameObject crossbarUI;
-
-    private const float TIMER_INTERVAL = 5.0f;
-    private float timer = TIMER_INTERVAL;
-    private int i = 0;
 
     public void EarlyInit() {
     }
 
     public void Init() {
         Assert.IsNotNull(crossbarUIPrefab, "Missing crossbar UI Prefab");
+        API.Client.OnWorldCreated += OnWorldCreated;
+        API.Client.OnWorldDestroyed += OnWorldDestroyed;
     }
 
     private void OnWorldCreated() {
         crossbarUI = Object.Instantiate(crossbarUIPrefab);
+        var objectSlotBarUI = crossbarUI.GetComponent<InventoryObjectSlotBarUI>();
+        CrossHotbar.InventoryObjectSlotBar.Patch.UIMouse.SetSlotBarUIInstance(objectSlotBarUI);
+        CrossHotbar.InventoryObjectSlotBar.Patch.PlayerInput.SetSlotBarUIInstance(objectSlotBarUI);
+        CrossHotbar.InventoryObjectSlotBar.Patch.PlayerController.SetSlotBarUIInstance(objectSlotBarUI);
+    }
+
+    private void OnWorldDestroyed() {
     }
 
     public void Shutdown() {
+        API.Client.OnWorldCreated -= OnWorldCreated;
+        API.Client.OnWorldDestroyed -= OnWorldDestroyed;
+
         if (crossbarUI != null) {
             Object.Destroy(crossbarUI);
         }
@@ -51,22 +58,5 @@ public class CrossHotbarMod : IMod {
         if (crossbarUI == null) {
             OnWorldCreated();
         }
-
-        if ((timer -= Time.deltaTime) > 0) {
-            return;
-        }
-
-        Manager.main.player.EquipSlot(10 + i % 10);
-        timer += TIMER_INTERVAL;
-        i++;
-
-        //Debug.Log(Manager.ui.itemSlotsBar.itemSlotPrefab);
-        //initialized = true;
-
-
-        //Manager.main.player.UnequipEquippedSlot();
-        //Manager.ui.OnEquipmentSlotActivated(11);
-        //Manager.main.player.UpdateEquippedSlotVisuals();
-
     }
 }
