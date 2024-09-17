@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: -1723848245, guid: 8755fc0f8990e9f418149df4a482da57, type: 3}
   m_Name: SpriteAssetManifest
   m_EditorClassIdentifier: 
-  spriteAssets:
-  - {fileID: 11400000, guid: 18ee6ee5463d288409e5abde9e80fc0e, type: 2}
+  spriteAssets: []
   gradientMaps: []
   transformAnimations: []

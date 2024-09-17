@@ -9,7 +9,7 @@ using System.Threading;
 namespace CrossHotbar.EquipFromInventory {
 
     [HarmonyPatch(typeof(global::PlayerController))]
-    class PlayerController {
+    internal class PlayerController {
         internal static readonly object _lock = new();
         internal static EquipmentSlot? _slot = null;
         internal static int _hotbar_lastUsed = 0;
@@ -18,12 +18,6 @@ namespace CrossHotbar.EquipFromInventory {
         [HarmonyPatch(nameof(global::PlayerController.equippedSlotIndex), MethodType.Setter)]
         [HarmonyReversePatch]
         static private void SetEquippedSlotIndex(global::PlayerController __instance, int value) => throw new NotImplementedException();
-
-        [HarmonyPatch(nameof(global::PlayerController.OnFree))]
-        [HarmonyPrefix]
-        static void OnFree(PlayerController __instance) {
-            FreeState();
-        }
 
         private static void FreeState() {
             var slot = Interlocked.Exchange(ref _slot, null);

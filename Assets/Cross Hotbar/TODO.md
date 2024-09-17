@@ -20,4 +20,21 @@
 		OK; Will not work for the default bindings
 	 - UpdateInventoryStuff
 		OK
+
+[] Item slot that tracks if item is in inventory, and if it is it shows it
+	* Handle the mouse over, add error border and remove selection on click
+	* Instantiate slot at last hotbar position + 3 * pixelSize (0,0625)
+	* Move all SpriteRenderer's sort order by a 100 (or at least by 10)
+		- If a 2nd mod is gonna require the same position, think about making a stack framework for the inventory
+	* Add category into controlls
+		* Add Hotbar shortcut ('s?)
+		* Add Hotbar selection keys (What if someone wants to use a slot as is?)
+
+	
 	 
+Needed fixes:
+	Items selected from the quick torch, swap the items in the inventory, Abut no visual update is made on the local user
+	Slot error on death
+
+Research:
+	Singleton Components as system state?

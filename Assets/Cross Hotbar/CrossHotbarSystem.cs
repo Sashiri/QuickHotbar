@@ -21,9 +21,6 @@ public class CrossHotbarMod : IMod {
 
     private void OnWorldCreated() {
         crossbarUI = Object.Instantiate(crossbarUIPrefab);
-        if (crossbarUI.GetComponent<CrossHotbarUI>() is var ui) {
-            ui.Init();
-        }
     }
 
     public void Shutdown() {
@@ -51,6 +48,10 @@ public class CrossHotbarMod : IMod {
             return;
         }
 
+        if (crossbarUI == null) {
+            OnWorldCreated();
+        }
+
         if ((timer -= Time.deltaTime) > 0) {
             return;
         }
@@ -60,7 +61,6 @@ public class CrossHotbarMod : IMod {
         i++;
 
         //Debug.Log(Manager.ui.itemSlotsBar.itemSlotPrefab);
-        //OnWorldCreated();
         //initialized = true;
 
 

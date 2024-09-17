@@ -1,21 +1,19 @@
-using PugMod;
-using System.Collections;
+using CrossHotbar.EquipFromInventory;
 using System.Collections.Generic;
 using UnityEngine;
 
 
 class CrossHotbarUI : ItemSlotsBarUI {
+    private SlotUIBase blablabla;
     public override void Init() {
         var vanillaHotbar = Manager.ui.itemSlotsBar;
-        itemSlotPrefab = vanillaHotbar.itemSlotPrefab;
+        itemSlotPrefab = ObjectPreviewSlotUI.Prefab;
+        // itemSlotPrefab = vanillaHotbar.itemSlotPrefab;
         spread = vanillaHotbar.spread;
         backgroundSR = vanillaHotbar.backgroundSR;
         backgroundBlockCollider = vanillaHotbar.backgroundBlockCollider;
-        base.Init();
 
-        foreach (var slot in itemSlots) {
-            slot.visibleSlotIndex = slot.visibleSlotIndex + 10;
-        }
+        base.Init();
 
         Debug.Log($"Initialized the {nameof(CrossHotbarUI)}");
     }
