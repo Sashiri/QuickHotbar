@@ -20,14 +20,6 @@ namespace CrossHotbar.InventoryObjectSlotBar {
             backgroundSR = vanillaHotbar.backgroundSR;
             backgroundBlockCollider = vanillaHotbar.backgroundBlockCollider;
 
-            foreach (var (i, slot) in itemSlots.Enumerate()) {
-                if (slot == null || slot is not InventoryObjectSlotUI ui) {
-                    return;
-                }
-
-                ui.buttonNumber.textString = ((i + 1) % 10).ToString();
-            }
-
             base.Awake();
         }
 
@@ -38,6 +30,18 @@ namespace CrossHotbar.InventoryObjectSlotBar {
             }
             else if (Manager.ui.isAnyInventoryShowing && crossHotbarKeyDown) {
                 itemSlotsRoot.SetActive(true);
+            }
+        }
+
+        public override void Init() {
+            base.Init();
+            
+            foreach (var (i, slotUI) in itemSlots.Enumerate()) {
+                if (slotUI == null || slotUI is not InventoryObjectSlotUI objectSlotUI) {
+                    return;
+                }
+
+                objectSlotUI.ButtonNumber = ((i + 1) % 10).ToString();
             }
         }
     }

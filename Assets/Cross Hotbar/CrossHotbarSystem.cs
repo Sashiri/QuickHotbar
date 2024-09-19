@@ -17,6 +17,9 @@ public class CrossHotbarMod : IMod {
     }
 
     private void OnWorldCreated() {
+        if (crossbarUI != null) {
+            Debug.LogError("CrossbarUI was already instantiated, dirty cleanup?");
+        }
         crossbarUI = Object.Instantiate(crossbarUIPrefab);
         var objectSlotBarUI = crossbarUI.GetComponent<InventoryObjectSlotBarUI>();
         CrossHotbar.InventoryObjectSlotBar.Patch.UIMouse.SetSlotBarUIInstance(objectSlotBarUI);
@@ -25,15 +28,14 @@ public class CrossHotbarMod : IMod {
     }
 
     private void OnWorldDestroyed() {
+        if (crossbarUI != null) {
+            Object.Destroy(crossbarUI);
+        }
     }
 
     public void Shutdown() {
         API.Client.OnWorldCreated -= OnWorldCreated;
         API.Client.OnWorldDestroyed -= OnWorldDestroyed;
-
-        if (crossbarUI != null) {
-            Object.Destroy(crossbarUI);
-        }
     }
 
     public void ModObjectLoaded(Object obj) {

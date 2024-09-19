@@ -8,6 +8,7 @@ namespace CrossHotbar.InventoryObjectSlot {
     internal class InventoryObjectSlotUI : InventorySlotUI {
         private ObjectID _objectID;
         public ObjectID ObjectID { get => _objectID; set => _objectID = value; }
+        public string ButtonNumber { get; set; } = string.Empty;
         private void UpdateVisibleSlotIndex() {
             if (ObjectID == ObjectID.None) {
                 visibleSlotIndex = -1;
@@ -29,13 +30,7 @@ namespace CrossHotbar.InventoryObjectSlot {
                 .CreateEntityQuery(typeof(PugDatabase.DatabaseBankCD))
                 .GetSingleton<PugDatabase.DatabaseBankCD>();
 
-            var slotIndex = InventoryUtility.FindFirstOccurenceOfObject(ObjectID, items, databaseBank);
-            if (slotIndex < 0) {
-                visibleSlotIndex = -1;
-                return;
-            }
-
-            visibleSlotIndex = slotIndex;
+            visibleSlotIndex = InventoryUtility.FindFirstOccurenceOfObject(ObjectID, items, databaseBank);
         }
 
         protected override ContainedObjectsBuffer GetSlotObject() {
@@ -50,7 +45,7 @@ namespace CrossHotbar.InventoryObjectSlot {
             UpdateVisibleSlotIndex();
             base.UpdateSlot();
             RenderButtonNumber();
-            var data = GetContainedObjectData();
+            var data = GetSlotObject();
             if (ObjectID != ObjectID.None && data.objectID == ObjectID.None) {
                 ShowHint(new ObjectDataCD {
                     objectID = ObjectID,
@@ -66,8 +61,8 @@ namespace CrossHotbar.InventoryObjectSlot {
 
             if (Manager.prefs.ShowHotbarKeyboardNumbers) {
                 buttonNumber.gameObject.SetActive(value: true);
-                if (buttonNumber.displayedTextString != buttonNumber.textString) {
-                    buttonNumber.Render();
+                if (buttonNumber.displayedTextString != ButtonNumber) {
+                    buttonNumber.Render(ButtonNumber);
                 }
             }
             else {

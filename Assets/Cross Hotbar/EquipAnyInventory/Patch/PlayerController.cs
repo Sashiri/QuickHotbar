@@ -17,7 +17,7 @@ namespace CrossHotbar.EquipAnyInventory.Patch {
 
         [HarmonyPatch(nameof(global::PlayerController.equippedSlotIndex), MethodType.Setter)]
         [HarmonyReversePatch]
-        static private void SetEquippedSlotIndex(global::PlayerController __instance, int value) => throw new NotImplementedException();
+        private static void SetEquippedSlotIndex(global::PlayerController __instance, int value) => throw new NotImplementedException();
 
         private static void FreeState() {
             var slot = Interlocked.Exchange(ref _slot, null);
@@ -94,7 +94,7 @@ namespace CrossHotbar.EquipAnyInventory.Patch {
         }
 
         private static EquipmentSlot CreateEquipmentSlot(global::PlayerController player, int index) {
-            var slotObject = player.playerInventoryHandler.GetObjectData(index);
+            var slotObject = player.GetInventorySlot(index).objectData;
             var objectType = (slotObject.objectID, PugDatabase.GetObjectInfo(slotObject.objectID, slotObject.variation)) switch {
                 (ObjectID.None, _) or (_, null) => ObjectType.NonUsable,
                 var (_, objectInfo) => objectInfo.objectType
@@ -242,8 +242,32 @@ namespace CrossHotbar.EquipAnyInventory.Patch {
             SetEquippedSlotIndex(__instance, __state);
         }
 
+        [HarmonyPatch(nameof(global::PlayerController.UpdateAllEquipmentSlots))]
+        [HarmonyPostfix]
+        private static void UpdateAllEquipmentSlots(global::PlayerController __instance) {
+            if (_slot == null) {
+                return;
+            }
+            __instance.UpdateEquipmentSlot(_slot.inventoryIndexReference);
+        }
+
+        [HarmonyPatch(nameof(global::PlayerController.UpdateEquipmentSlot))]
+        [HarmonyPostfix]
+        private static void UpdateEquipmentSlot(global::PlayerController __instance, int index) {
+            if (_slot == null || _slot.inventoryIndexReference == index) {
+                return;
+            }
+
+            if (_slot.inventoryIndexReference != __instance.equippedSlotIndex) {
+                Debug.LogWarning("The slot is managed but the player holds a different item than tracked");
+                return;
+            }
+
+            __instance.EquipSlot(_slot.inventoryIndexReference);
+        }
+
         [HarmonyPatch(nameof(GetSlotTypeForObjectType))]
         [HarmonyReversePatch]
-        static private Type GetSlotTypeForObjectType(global::PlayerController __instance, ObjectType objectType, ObjectDataCD objectData) => throw new NotImplementedException();
+        private static Type GetSlotTypeForObjectType(global::PlayerController __instance, ObjectType objectType, ObjectDataCD objectData) => throw new NotImplementedException();
     }
 }
