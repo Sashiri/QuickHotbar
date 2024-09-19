@@ -22,9 +22,9 @@ public class CrossHotbarMod : IMod {
         }
         crossbarUI = Object.Instantiate(crossbarUIPrefab);
         var objectSlotBarUI = crossbarUI.GetComponent<InventoryObjectSlotBarUI>();
-        CrossHotbar.InventoryObjectSlotBar.Patch.UIMouse.SetSlotBarUIInstance(objectSlotBarUI);
-        CrossHotbar.InventoryObjectSlotBar.Patch.PlayerInput.SetSlotBarUIInstance(objectSlotBarUI);
-        CrossHotbar.InventoryObjectSlotBar.Patch.PlayerController.SetSlotBarUIInstance(objectSlotBarUI);
+        CrossHotbar.Patch.UIMouse.SetSlotBarUIInstance(objectSlotBarUI);
+        CrossHotbar.Patch.PlayerInput.SetSlotBarUIInstance(objectSlotBarUI);
+        CrossHotbar.Patch.PlayerController.SetSlotBarUIInstance(objectSlotBarUI);
     }
 
     private void OnWorldDestroyed() {

@@ -1,8 +1,9 @@
+using CrossHotbar.InventoryObjectSlotBar;
 using HarmonyLib;
 
 #nullable enable
 
-namespace CrossHotbar.InventoryObjectSlotBar.Patch {
+namespace CrossHotbar.Patch {
     [HarmonyPatch(typeof(global::PlayerInput))]
     class PlayerInput {
         private static InventoryObjectSlotBarUI? _slotBarInstance;

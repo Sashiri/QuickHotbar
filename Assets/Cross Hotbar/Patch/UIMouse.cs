@@ -1,10 +1,10 @@
 using CrossHotbar.InventoryObjectSlot;
+using CrossHotbar.InventoryObjectSlotBar;
 using HarmonyLib;
-using UnityEngine;
 
 #nullable enable
 
-namespace CrossHotbar.InventoryObjectSlotBar.Patch {
+namespace CrossHotbar.Patch {
     [HarmonyPatch(typeof(global::UIMouse))]
     class UIMouse {
         private static InventoryObjectSlotBarUI? _slotBarInstance;

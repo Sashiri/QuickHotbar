@@ -33,8 +33,7 @@
 	
 	 
 Needed fixes:
-	Items selected from the quick torch, swap the items in the inventory, Abut no visual update is made on the local user
-	Slot error on death
+	Equiping Item from "mouse/hand" 
 
 Research:
 	Singleton Components as system state?
