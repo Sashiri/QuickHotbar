@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using Inventory;
 using PugMod;
+using Unity.Entities.UniversalDelegates;
 
 #nullable enable
 
@@ -24,13 +26,19 @@ namespace CrossHotbar.InventoryObjectSlot {
 
             var player = Manager.main.player;
             var inventories = player.querySystem.GetBufferLookup<ContainedObjectsBuffer>(true);
-            var items = inventories[GetInventoryHandler().inventoryEntity];
+            var items = inventories[inventoryHandler.inventoryEntity];
 
             var databaseBank = API.Client.World.EntityManager
                 .CreateEntityQuery(typeof(PugDatabase.DatabaseBankCD))
                 .GetSingleton<PugDatabase.DatabaseBankCD>();
 
-            visibleSlotIndex = InventoryUtility.FindFirstOccurenceOfObject(ObjectID, items, databaseBank);
+            var slotIndex = InventoryUtility.FindFirstOccurenceOfObject(ObjectID, items, databaseBank);
+            if (slotIndex < inventoryHandler.startPosInBuffer || slotIndex > inventoryHandler.startPosInBuffer + inventoryHandler.size) {
+                visibleSlotIndex = -1;
+                return;
+            }
+
+            visibleSlotIndex = slotIndex;
         }
 
         protected override ContainedObjectsBuffer GetSlotObject() {
@@ -77,11 +85,11 @@ namespace CrossHotbar.InventoryObjectSlot {
 
             var slotUI = prefab.GetComponent<InventorySlotUI>();
             var slotOverride = prefab.AddComponent<InventoryObjectSlotUI>();
-            
+
             slotOverride.ApplyPrefab(slotUI);
             float alpha = 2 * slotOverride.darkBackground.color.a - MathF.Pow(slotOverride.darkBackground.color.a, 2);
             slotOverride.darkBackground.color = slotOverride.darkBackground.color.ColorWithNewAlpha(alpha);
-            
+
             slotUI.enabled = false;
 
             return slotOverride;

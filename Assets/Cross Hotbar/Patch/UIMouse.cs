@@ -24,7 +24,7 @@ namespace CrossHotbar.Patch {
 
             InventorySlotUI? inventorySlotUI = Manager.ui.currentSelectedUIElement as InventorySlotUI;
             if (inventorySlotUI != null) {
-                for (int j = 0; j < 10; j++) {
+                for (int j = 0; j < global::PlayerController.MAX_EQUIPMENT_SLOTS; j++) {
                     if (PlayerInput.WasSlotButtonPressedDownThisFrame(Manager.main.player.inputModule, j, false)) {
                         SwapHotBarItemSlot(inventorySlotUI, j);
                     }

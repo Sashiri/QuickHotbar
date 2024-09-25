@@ -52,7 +52,12 @@ namespace CrossHotbar.Patch {
                         return;
                     }
 
-                    __instance.EquipSlot(objectSlot.inventorySlotIndex);
+                    var slotIndex = objectSlot.inventorySlotIndex;
+                    if (slotIndex < 0) {
+                        return;
+                    }
+
+                    __instance.EquipSlot(slotIndex);
                 }
             }
 

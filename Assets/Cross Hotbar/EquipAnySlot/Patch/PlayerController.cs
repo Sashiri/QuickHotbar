@@ -70,7 +70,7 @@ namespace CrossHotbar.EquipAnySlot.Patch {
             var slot = slotController.Equip(GetSlotTypeForIndex(__instance, slotIndex), slotIndex);
             slot.OnPickUp(__instance, false);
 
-            ___lastUsedSlotIndex = slotIndex;
+            PlayerControllerAccessor.SetLastUsedSlotIndex(__instance, slotIndex);
             PlayerControllerAccessor.SetEquippedSlotIndex(__instance, slotIndex);
             slot.OnEquip(__instance);
 
