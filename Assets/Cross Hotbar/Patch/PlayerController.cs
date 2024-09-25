@@ -1,3 +1,4 @@
+using System;
 using CrossHotbar.InventoryObjectSlotBar;
 using HarmonyLib;
 
@@ -7,8 +8,17 @@ namespace CrossHotbar.Patch {
     [HarmonyPatch(typeof(global::PlayerController))]
     class PlayerController {
         private static InventoryObjectSlotBarUI? _slotBarInstance;
+        public static event Action<global::PlayerController>? OnPlayerOccupied;
         public static void SetSlotBarUIInstance(InventoryObjectSlotBarUI? instance) {
             _slotBarInstance = instance;
+        }
+
+        [HarmonyPatch(nameof(global::PlayerController.OnOccupied))]
+        [HarmonyPostfix]
+        private static void OnOccupied(global::PlayerController __instance) {
+            if (OnPlayerOccupied is not null) {
+                OnPlayerOccupied(__instance);
+            }
         }
 
         [HarmonyPatch(nameof(UpdateInventoryStuff))]
@@ -26,7 +36,7 @@ namespace CrossHotbar.Patch {
                 return;
             }
 
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < global::PlayerController.MAX_EQUIPMENT_SLOTS; i++) {
                 if (PlayerInput.WasSlotButtonPressedDownThisFrame(__instance.inputModule, i, false)) {
                     var objectSlot = _slotBarInstance.GetEquipmentSlot(i);
                     if (objectSlot == null) {

@@ -77,13 +77,12 @@ namespace CrossHotbar.InventoryObjectSlot {
 
             var slotUI = prefab.GetComponent<InventorySlotUI>();
             var slotOverride = prefab.AddComponent<InventoryObjectSlotUI>();
+            
             slotOverride.ApplyPrefab(slotUI);
-            slotUI.enabled = false;
-            slotUI.overlayIcon.gameObject.SetActive(false);
-            slotUI.underlayIcon.gameObject.SetActive(false);
-
             float alpha = 2 * slotOverride.darkBackground.color.a - MathF.Pow(slotOverride.darkBackground.color.a, 2);
             slotOverride.darkBackground.color = slotOverride.darkBackground.color.ColorWithNewAlpha(alpha);
+            
+            slotUI.enabled = false;
 
             return slotOverride;
         });

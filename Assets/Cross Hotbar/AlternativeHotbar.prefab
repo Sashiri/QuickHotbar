@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6758165636568567550}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: root
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -41,7 +41,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2479370822400707577}
   - component: {fileID: 3931565622757328416}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: AlternativeHotbar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
