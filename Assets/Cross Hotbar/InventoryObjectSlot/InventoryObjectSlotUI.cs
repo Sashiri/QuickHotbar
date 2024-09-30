@@ -1,8 +1,6 @@
 using System;
-using System.Linq;
 using Inventory;
 using PugMod;
-using Unity.Entities.UniversalDelegates;
 
 #nullable enable
 
@@ -28,8 +26,7 @@ namespace CrossHotbar.InventoryObjectSlot {
             var inventories = player.querySystem.GetBufferLookup<ContainedObjectsBuffer>(true);
             var items = inventories[inventoryHandler.inventoryEntity];
 
-            var databaseBank = API.Client.World.EntityManager
-                .CreateEntityQuery(typeof(PugDatabase.DatabaseBankCD))
+            var databaseBank = API.Client.GetEntityQuery(typeof(PugDatabase.DatabaseBankCD))
                 .GetSingleton<PugDatabase.DatabaseBankCD>();
 
             var slotIndex = InventoryUtility.FindFirstOccurenceOfObject(ObjectID, items, databaseBank);
