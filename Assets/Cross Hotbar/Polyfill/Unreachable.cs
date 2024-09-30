@@ -3,6 +3,7 @@
 #if NET7_0_OR_GREATER
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Diagnostics.UnreachableException))]
 #else
+#nullable enable
 namespace System.Diagnostics {
     /// <summary>
     /// Exception thrown when the program executes an instruction that was thought to be unreachable.
