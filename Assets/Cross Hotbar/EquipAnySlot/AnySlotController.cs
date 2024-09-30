@@ -17,7 +17,9 @@ namespace CrossHotbar.EquipAnySlot {
         }
 
         public EquipmentSlot Equip(Type SlotT, int index) {
-            Unequip();
+            if (_slot != null) {
+                throw new InvalidOperationException();
+            }
             _slot = Create(SlotT);
             _slot.inventoryIndexReference = index;
             _slot.OnOccupied();
@@ -50,7 +52,7 @@ namespace CrossHotbar.EquipAnySlot {
     }
 
     sealed class SlotBarIntegrationManager : MonoBehaviour {
-        public ISlotBarIntegrationStrategy Integration { get; private set; } = new DefaultSlotBarIntegration();
+        internal ISlotBarIntegrationStrategy Integration { get; private set; } = new DefaultSlotBarIntegration();
     }
 
     interface ISlotBarIntegrationStrategy {
@@ -59,22 +61,21 @@ namespace CrossHotbar.EquipAnySlot {
         void UpdateIndex(PlayerController playerController);
     }
 
-    sealed class DefaultSlotBarIntegration : ISlotBarIntegrationStrategy {
+    class DefaultSlotBarIntegration : ISlotBarIntegrationStrategy {
         private int _previousSlotbarIndex = -1;
         public void UpdateIndex(PlayerController playerController) {
-            //Possibly left / right movement on the hotbar
-            if (playerController.TryGetComponent<AnySlotController>(out var slotController)
-                && slotController.IsEquipped()
-                && playerController.equippedSlotIndex != _previousSlotbarIndex
+            if (playerController.equippedSlotIndex != _previousSlotbarIndex
                 && playerController.equippedSlotIndex < PlayerController.MAX_EQUIPMENT_SLOTS
             ) {
-                slotController.Unequip();
+                _previousSlotbarIndex = playerController.equippedSlotIndex;
             }
-
-            _previousSlotbarIndex = playerController.equippedSlotIndex;
         }
 
         public void RevertIndexBeforeUpdate(PlayerController playerController) {
+            if (_previousSlotbarIndex == -1) {
+                return;
+            }
+            
             PlayerControllerAccessor.SetEquippedSlotIndex(playerController, _previousSlotbarIndex);
         }
 

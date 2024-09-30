@@ -45,7 +45,7 @@ namespace CrossHotbar.EquipAnySlot.Patch {
             return state;
         }
 
-        private static bool IsModResponsibility(int index) => index > global::PlayerController.MAX_EQUIPMENT_SLOTS;
+        private static bool IsModResponsibility(int index) => index >= global::PlayerController.MAX_EQUIPMENT_SLOTS;
 
 
         [HarmonyPatch(nameof(global::PlayerController.EquipSlot))]
@@ -108,8 +108,8 @@ namespace CrossHotbar.EquipAnySlot.Patch {
 
             if (!slotController.IsTracking(__instance.equippedSlotIndex)) {
                 Debug.LogWarning("The slot is managed but the player holds a different item than tracked");
-                Debug.LogWarning($"Index of managed slot: ${slotController.GetSlot().inventoryIndexReference}");
-                Debug.LogWarning($"Current index of equipped slot: ${__instance.equippedSlotIndex}");
+                Debug.Log($"Index of managed slot: ${slotController.GetSlot().inventoryIndexReference}");
+                Debug.Log($"Current index of equipped slot: ${__instance.equippedSlotIndex}");
                 return true;
             }
 
@@ -120,10 +120,6 @@ namespace CrossHotbar.EquipAnySlot.Patch {
         [HarmonyPatch(nameof(global::PlayerController.UnequipEquippedSlot))]
         [HarmonyPostfix]
         static void UnequipEquippedSlot(global::PlayerController __instance) {
-            if (!IsModResponsibility(__instance.equippedSlotIndex)) {
-                return;
-            }
-
             var slotController = GetState(__instance);
             if (slotController.IsEquipped()) {
                 slotController.Unequip();
