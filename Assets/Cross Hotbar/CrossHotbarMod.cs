@@ -1,8 +1,18 @@
+using System.Collections.Generic;
+using System.Linq;
 using CrossHotbar.EquipAnySlot;
 using CrossHotbar.InventoryObjectSlotBar;
 using PugMod;
+using Rewired.UI.ControlMapper;
 using Unity.Assertions;
 using UnityEngine;
+
+static class ModBundles {
+    internal static IEnumerable<AssetBundle> Of(IMod mod) => API.ModLoader.LoadedMods.First(m => m.Handlers.Contains(mod)).AssetBundles;
+    internal static IEnumerable<object> LoadAsset(IMod mod, string path) => Of(mod).Select(bundle => bundle.LoadAsset(path));
+    internal static IEnumerable<T> LoadAsset<T>(IMod mod, string path) where T : Object =>
+        Of(mod).Select(bundle => bundle.LoadAsset<T>(path));
+}
 
 namespace CrossHotbar {
 
@@ -11,10 +21,10 @@ namespace CrossHotbar {
         private GameObject crossbarUI;
 
         public void EarlyInit() {
+            crossbarUIPrefab = ModBundles.LoadAsset<GameObject>(this, "Assets/Cross Hotbar/AlternativeHotbar.prefab").Single();
         }
 
         public void Init() {
-            Assert.IsNotNull(crossbarUIPrefab, "Missing crossbar UI Prefab");
             API.Client.OnWorldCreated += OnWorldCreated;
             API.Client.OnWorldDestroyed += OnWorldDestroyed;
         }
@@ -49,13 +59,12 @@ namespace CrossHotbar {
         }
 
         public void ModObjectLoaded(Object obj) {
-            if (obj.name is "AlternativeHotbar" && obj is GameObject prefab) {
-                crossbarUIPrefab = prefab;
-            }
         }
 
         public void Update() {
         }
+
+        bool IMod.CanBeUnloaded() => true;
     }
 
 }
