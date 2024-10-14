@@ -7,7 +7,7 @@ namespace CrossHotbar.Patch {
     [HarmonyPatch(typeof(global::PlayerInput))]
     class PlayerInput {
         private static InventoryObjectSlotBarUI? _slotBarInstance;
-        public static void SetSlotBarUIInstance(InventoryObjectSlotBarUI? instance) {
+        internal static void SetSlotBarUIInstance(InventoryObjectSlotBarUI? instance) {
             _slotBarInstance = instance;
         }
 
@@ -25,7 +25,7 @@ namespace CrossHotbar.Patch {
 
         [HarmonyPatch(nameof(global::PlayerInput.WasSlotButtonPressedDownThisFrame))]
         [HarmonyReversePatch(HarmonyReversePatchType.Original)]
-        public static bool WasSlotButtonPressedDownThisFrame(global::PlayerInput __instance, int index, bool discardDisabledInput = false) => throw new System.NotImplementedException();
+        internal static bool WasSlotButtonPressedDownThisFrame(global::PlayerInput __instance, int index, bool discardDisabledInput = false) => throw new System.NotImplementedException();
     }
 
 }

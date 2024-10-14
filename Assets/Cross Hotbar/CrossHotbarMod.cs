@@ -1,43 +1,52 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using CrossHotbar.EquipAnySlot;
 using CrossHotbar.InventoryObjectSlotBar;
 using PugMod;
-using Rewired.UI.ControlMapper;
-using Unity.Assertions;
+using Unity.Properties;
 using UnityEngine;
 
+[assembly: GeneratePropertyBagsForAssembly]
+
 static class ModBundles {
-    internal static IEnumerable<AssetBundle> Of(IMod mod) => API.ModLoader.LoadedMods.First(m => m.Handlers.Contains(mod)).AssetBundles;
-    internal static IEnumerable<object> LoadAsset(IMod mod, string path) => Of(mod).Select(bundle => bundle.LoadAsset(path));
+    internal static IEnumerable<AssetBundle> GetAssetBundles(IMod mod) => API.ModLoader.LoadedMods.First(m => m.Handlers.Contains(mod)).AssetBundles;
+    internal static IEnumerable<object> LoadAsset(IMod mod, string path) => GetAssetBundles(mod).Select(bundle => bundle.LoadAsset(path));
     internal static IEnumerable<T> LoadAsset<T>(IMod mod, string path) where T : Object =>
-        Of(mod).Select(bundle => bundle.LoadAsset<T>(path));
+        GetAssetBundles(mod).Select(bundle => bundle.LoadAsset<T>(path));
 }
 
 namespace CrossHotbar {
 
     public class CrossHotbarMod : IMod {
-        private GameObject crossbarUIPrefab;
         private GameObject crossbarUI;
 
-        public void EarlyInit() {
-            crossbarUIPrefab = ModBundles.LoadAsset<GameObject>(this, "Assets/Cross Hotbar/AlternativeHotbar.prefab").Single();
+        void IMod.EarlyInit() {
         }
 
-        public void Init() {
+        void IMod.Init() {
             API.Client.OnWorldCreated += OnWorldCreated;
             API.Client.OnWorldDestroyed += OnWorldDestroyed;
         }
 
-        private void OnPlayerOccupied(PlayerController playerController) {
-            playerController.gameObject.AddComponent<SlotBarIntegrationManager>();
+        void IMod.Shutdown() {
+            API.Client.OnWorldCreated -= OnWorldCreated;
+            API.Client.OnWorldDestroyed -= OnWorldDestroyed;
         }
+
+        void IMod.ModObjectLoaded(Object obj) {
+        }
+
+        void IMod.Update() {
+        }
+
+        bool IMod.CanBeUnloaded() => true;
 
         private void OnWorldCreated() {
             if (crossbarUI != null) {
                 Debug.LogError("CrossbarUI was already instantiated, dirty cleanup?");
             }
-            crossbarUI = Object.Instantiate(crossbarUIPrefab);
+            crossbarUI = InventoryObjectSlotBarUI.Create();
             var objectSlotBarUI = crossbarUI.GetComponent<InventoryObjectSlotBarUI>();
             Patch.UIMouse.SetSlotBarUIInstance(objectSlotBarUI);
             Patch.PlayerInput.SetSlotBarUIInstance(objectSlotBarUI);
@@ -53,18 +62,11 @@ namespace CrossHotbar {
             }
         }
 
-        public void Shutdown() {
-            API.Client.OnWorldCreated -= OnWorldCreated;
-            API.Client.OnWorldDestroyed -= OnWorldDestroyed;
+        private void OnPlayerOccupied(PlayerController playerController) {
+            playerController.gameObject.ConfigureComponent<SlotBarIntegrationManager>(manager => {
+                manager.Integration = manager.gameObject.AddComponent<DefaultSlotBarIntegration>();
+            });
         }
-
-        public void ModObjectLoaded(Object obj) {
-        }
-
-        public void Update() {
-        }
-
-        bool IMod.CanBeUnloaded() => true;
     }
 
 }

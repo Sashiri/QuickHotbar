@@ -5,6 +5,8 @@ using UnityEngine;
 using System.Threading;
 using PugMod;
 using System.Linq;
+using System.Threading.Tasks;
+using CrossHotbar.InventoryObjectSlot;
 
 #nullable enable
 
@@ -51,14 +53,24 @@ namespace CrossHotbar.EquipAnySlot.Patch {
         [HarmonyPatch(nameof(global::PlayerController.EquipSlot))]
         [HarmonyPrefix]
         static bool EquipSlot(global::PlayerController __instance, ref bool __result, int slotIndex, ref int ___lastUsedSlotIndex) {
+            if (slotIndex == InventoryObjectSlotUI.NOT_FOUND) {
+                return false;
+            }
+
             if (!IsModResponsibility(slotIndex)) {
+                if (__instance.TryGetComponent<SlotBarIntegrationManager>(out var integrationManager)
+                        && integrationManager.Integration is not null
+                        && integrationManager.Integration.IsEnabled(__instance)) {
+                    integrationManager.Integration.Disable(__instance);
+                }
                 return true;
             }
 
             if (!IsModResponsibility(__instance.equippedSlotIndex)) {
                 Manager.ui.itemSlotsBar.itemSlots[__instance.equippedSlotIndex].OnSetSlotInactivate();
-                if (__instance.TryGetComponent<SlotBarIntegrationManager>(out var integrationManager)) {
-                    integrationManager.Integration.UpdateIndex(__instance);
+                if (__instance.TryGetComponent<SlotBarIntegrationManager>(out var integrationManager)
+                        && integrationManager.Integration is not null) {
+                    integrationManager.Integration.Enable(__instance);
                 }
             }
 
@@ -275,27 +287,25 @@ namespace CrossHotbar.EquipAnySlot.Patch {
 
         [HarmonyPatch("UpdateInventoryStuff")]
         [HarmonyPrefix]
-        private static void UpdateInventoryStuff_Prefix(global::PlayerController __instance, out bool __state) {
-            __state = false;
-
+        private static void UpdateInventoryStuff_Prefix(global::PlayerController __instance, out TaskCompletionSource<object?>? __state) {
+            __state = null;
             var slotController = GetState(__instance);
-            if (!slotController.IsEquipped() || !__instance.TryGetComponent<SlotBarIntegrationManager>(out var integrationManager)) {
+            if (!slotController.IsEquipped() || !__instance.TryGetComponent<SlotBarIntegrationManager>(out var integrationManager) || integrationManager.Integration is null) {
                 return;
             }
 
-            __state = true;
-            integrationManager.Integration.RevertIndexBeforeUpdate(__instance);
+            __state = new();
+            integrationManager.Integration.OnInventoryUpdate(__instance, __state.Task);
         }
 
         [HarmonyPatch("UpdateInventoryStuff")]
         [HarmonyPostfix]
-        private static void UpdateInventoryStuff_Postfix(global::PlayerController __instance, bool __state) {
-            if (!__state || !__instance.TryGetComponent<SlotBarIntegrationManager>(out var integrationManager)) {
+        private static void UpdateInventoryStuff_Postfix(global::PlayerController __instance, TaskCompletionSource<object?>? __state) {
+            if (__state is null) {
                 return;
             }
 
-            integrationManager.Integration.UpdateIndex(__instance);
-            integrationManager.Integration.ApplyIndexAfterUpdate(__instance);
+            __state.SetResult(null);
         }
     }
 }

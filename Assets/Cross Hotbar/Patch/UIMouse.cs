@@ -8,13 +8,13 @@ namespace CrossHotbar.Patch {
     [HarmonyPatch(typeof(global::UIMouse))]
     class UIMouse {
         private static InventoryObjectSlotBarUI? _slotBarInstance;
-        public static void SetSlotBarUIInstance(InventoryObjectSlotBarUI? instance) {
+        internal static void SetSlotBarUIInstance(InventoryObjectSlotBarUI? instance) {
             _slotBarInstance = instance;
         }
 
         [HarmonyPatch(nameof(global::UIMouse.UpdateMouseUIInput))]
         [HarmonyPostfix]
-        public static void UpdateMouseUIInput() {
+        private static void UpdateMouseUIInput() {
             if (!Manager.ui.isMouseShowing) {
                 return;
             }

@@ -8,8 +8,8 @@ namespace CrossHotbar.Patch {
     [HarmonyPatch(typeof(global::PlayerController))]
     class PlayerController {
         private static InventoryObjectSlotBarUI? _slotBarInstance;
-        public static event Action<global::PlayerController>? OnPlayerOccupied;
-        public static void SetSlotBarUIInstance(InventoryObjectSlotBarUI? instance) {
+        internal static event Action<global::PlayerController>? OnPlayerOccupied;
+        internal static void SetSlotBarUIInstance(InventoryObjectSlotBarUI? instance) {
             _slotBarInstance = instance;
         }
 
