@@ -77,4 +77,18 @@ crashlytics-build.properties
 # Jetbrains
 .idea/
 
-UiElementsSchema/
+# Custom
+*/*
+
+.vsconfig
+EULA.txt
+OpenProject.bat
+OpenProject.ps1
+packages.config
+README.md
+CHANGELOG.pdf
+banner.png
+UpgradeLog.htm
+
+![Aa]ssets/QuickHotbar*
+[Aa]ssets/QuickHotbar/Design
