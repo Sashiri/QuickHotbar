@@ -76,3 +76,5 @@ crashlytics-build.properties
 
 # Jetbrains
 .idea/
+
+UiElementsSchema/
