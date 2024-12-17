@@ -1,20 +1,14 @@
-using System;
-using Inventory;
 using PugMod;
+using System;
 using Unity.Properties;
 using UnityEngine;
 
 #nullable enable
 
 namespace CrossHotbar.InventoryObjectSlot {
+
     [GeneratePropertyBag]
     internal partial class InventoryObjectSlotUI : EquipmentSlotUI {
-        public const int NOT_FOUND = -404;
-
-        private ObjectID _objectID;
-        public ObjectID ObjectID { get => _objectID; set => _objectID = value; }
-        public string ButtonNumber { get; set; } = string.Empty;
-
         public static GameObject Create() {
             var prefab = Manager.ui.itemSlotsBar.itemSlotPrefab;
             if (prefab is not InventorySlotUI itemSlotOriginalCast) {
@@ -23,13 +17,35 @@ namespace CrossHotbar.InventoryObjectSlot {
             return ObjectExtension.InstantiateWith(prefab, clone => {
                 clone.gameObject.ConfigureComponent<InventoryObjectSlotUI>(slotUI => {
                     slotUI.MixWith((InventorySlotUI)clone);
-
                 });
 
                 DestroyImmediate(clone);
             });
         }
 
+        public void SetTrackedObject(ObjectID objectID, InventoryObjectUtility.TrackingPreference preference) {
+            _objectID = objectID;
+            _trackingPreference = preference;
+        }
+
+        public string ButtonNumber { get; set; } = string.Empty;
+
+
+        private ObjectID _objectID;
+        private InventoryObjectUtility.TrackingPreference _trackingPreference = new(Variation: 0);
+        protected void MixWith(InventorySlotUI original) {
+            PropertyContainer.Accept(new ClonePropertiesVisitor<InventorySlotUI>(this), original);
+            float alpha = 2 * darkBackground.color.a - MathF.Pow(darkBackground.color.a, 2);
+            darkBackground.color = darkBackground.color.ColorWithNewAlpha(alpha);
+        }
+
+        internal const int NOT_FOUND = -404;
+
+
+        /// <summary>
+        /// Handle <see cref="NOT_FOUND"/> slot index, this is a result of using visible slot index as dynamic lookup variable
+        /// </summary>
+        /// <returns></returns>
         protected override ContainedObjectsBuffer GetSlotObject() {
             if (visibleSlotIndex < 0) {
                 return default;
@@ -38,6 +54,10 @@ namespace CrossHotbar.InventoryObjectSlot {
             return base.GetSlotObject();
         }
 
+        /// <summary>
+        /// Tries to find a matching item in player's inventory based on tracked <see cref="ObjectID"/> and <see cref="InventoryObjectUtility.TrackingPreference"/>\
+        /// Displays hint if the item could not be found
+        /// </summary>
         public override void UpdateSlot() {
             UpdateVisibleSlotIndex();
 
@@ -57,16 +77,16 @@ namespace CrossHotbar.InventoryObjectSlot {
             RenderButtonNumber();
 
             var data = GetSlotObject();
-            if (ObjectID != ObjectID.None && data.objectID == ObjectID.None) {
+            if (_objectID != ObjectID.None && data.objectID == ObjectID.None) {
                 ShowHint(new ObjectDataCD {
-                    objectID = ObjectID,
+                    objectID = _objectID,
                     amount = 1
                 }, false, _itemIsRequired: true);
             }
         }
 
         private void UpdateVisibleSlotIndex() {
-            if (ObjectID == ObjectID.None) {
+            if (_objectID == ObjectID.None) {
                 visibleSlotIndex = NOT_FOUND;
                 return;
             }
@@ -85,7 +105,7 @@ namespace CrossHotbar.InventoryObjectSlot {
             var databaseBank = API.Client.GetEntityQuery(typeof(PugDatabase.DatabaseBankCD))
                 .GetSingleton<PugDatabase.DatabaseBankCD>();
 
-            var slotIndex = InventoryUtility.FindFirstOccurenceOfObject(ObjectID, items, databaseBank);
+            var slotIndex = InventoryObjectUtility.FindFirstOccurenceOfTrackedObject(_objectID, _trackingPreference, items, databaseBank);
             if (slotIndex < inventoryHandler.startPosInBuffer || slotIndex > inventoryHandler.startPosInBuffer + inventoryHandler.size) {
                 visibleSlotIndex = NOT_FOUND;
                 return;
@@ -108,12 +128,6 @@ namespace CrossHotbar.InventoryObjectSlot {
             else {
                 buttonNumber.gameObject.SetActive(value: false);
             }
-        }
-
-        internal void MixWith(InventorySlotUI original) {
-            PropertyContainer.Accept(new ClonePropertiesVisitor<InventorySlotUI>(this), original);
-            float alpha = 2 * darkBackground.color.a - MathF.Pow(darkBackground.color.a, 2);
-            darkBackground.color = darkBackground.color.ColorWithNewAlpha(alpha);
         }
 
     }

@@ -53,6 +53,7 @@ namespace CrossHotbar.EquipAnySlot.Patch {
         [HarmonyPatch(nameof(global::PlayerController.EquipSlot))]
         [HarmonyPrefix]
         static bool EquipSlot(global::PlayerController __instance, ref bool __result, int slotIndex, ref int ___lastUsedSlotIndex) {
+            /// TODO: Constant is leaking out of feature, use struct or container class to answer question if the slot is used
             if (slotIndex == InventoryObjectSlotUI.NOT_FOUND) {
                 return false;
             }

@@ -1,6 +1,7 @@
 using CrossHotbar.InventoryObjectSlot;
 using CrossHotbar.InventoryObjectSlotBar;
 using HarmonyLib;
+using PlayFab.ExperimentationModels;
 
 #nullable enable
 
@@ -46,7 +47,8 @@ namespace CrossHotbar.Patch {
                 return;
             }
 
-            objectSlot.ObjectID = slotToSwapWith.GetObjectData().objectID;
+            var item = slotToSwapWith.GetObjectData();
+            objectSlot.SetTrackedObject(item.objectID, new(Variation: item.variation));
             objectSlot.UpdateSlot();
         }
 
