@@ -34,7 +34,7 @@ namespace CrossHotbar.EquipAnySlot {
                         hotbar.itemSlotPrefab = slotPrefab.GetComponent<SlotUIBase>();
                     });
 
-                clone.itemSlotsRoot.transform.localPosition += (new Vector3(1, 2, -1) * UIConst.PIXEL_STEP); 
+                clone.itemSlotsRoot.transform.localPosition += (new Vector3(1, 2, -1) * Constants.PIXEL_STEP); 
 
                 DestroyImmediate(clone);
             });

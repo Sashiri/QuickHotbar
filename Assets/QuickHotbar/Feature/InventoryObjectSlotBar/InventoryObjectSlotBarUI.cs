@@ -80,7 +80,7 @@ namespace CrossHotbar.InventoryObjectSlotBar {
             Ray ray = new(Manager.ui.mouse.pointer.transform.position + Vector3.back * 5f, Vector3.forward);
 
             RaycastHit[] raycastHitsNoSpan = new RaycastHit[8];
-            var hits = Physics.SphereCastNonAlloc(ray, UIConst.PIXEL_STEP * 1.5f, raycastHitsNoSpan, 10f, ObjectLayerID.UILayerMask);
+            var hits = Physics.SphereCastNonAlloc(ray, Constants.PIXEL_STEP * 1.5f, raycastHitsNoSpan, 10f, ObjectLayerID.UILayerMask);
             targetedUI = raycastHitsNoSpan.Take(hits)
                 .Select(hit => (hit.distance, ui: hit.collider.GetComponent<UIelement>()))
                 .Where(v =>
@@ -103,11 +103,11 @@ namespace CrossHotbar.InventoryObjectSlotBar {
 
         public void UpdatePosition() {
             if (Manager.ui.isAnyInventoryShowing && itemSlotsRoot.activeInHierarchy && targetedUI != null) {
-                var offset = Vector3.up * spread + (new Vector3(0, 2, -2) * UIConst.PIXEL_STEP);
+                var offset = Vector3.up * spread + (new Vector3(0, 2, -2) * Constants.PIXEL_STEP);
                 transform.position = Vector3.Scale(targetedUI.transform.position, Vector3.up) + offset;
             }
             else {
-                transform.position = Manager.ui.itemSlotsBar.transform.position + (new Vector3(1, 2, -2) * UIConst.PIXEL_STEP);
+                transform.position = Manager.ui.itemSlotsBar.transform.position + (new Vector3(1, 2, -2) * Constants.PIXEL_STEP);
             }
         }
 
