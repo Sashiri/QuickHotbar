@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc43e4983a160e543856e5ba0421c9e1, type: 3}
+  m_Name: QuickHotbar
+  m_EditorClassIdentifier: 
+  metadata:
+    guid: aeaf9d50394f441d863cbb3753e1be5f
+    name: QuickHotbar
+    skipSafetyChecks: 0
+    disableScripts: 0
+    accessesExtraAssemblies: 1
+    disableHarmonyPatching: 0
+    requiredOn: 0
+    files:
+    - path: Scripts/Scripts/Utils/Utils.cs
+    - path: Scripts/Scripts/Utils/UnityEngine.Object.cs
+    - path: Scripts/Scripts/Utils/Polyfill/Unreachable.cs
+    - path: Scripts/Scripts/Utils/Polyfill/IsExternalInit.cs
+    - path: Scripts/Scripts/Utils/GameObject.cs
+    - path: Scripts/Scripts/Utils/EnumerableExtensions.cs
+    - path: Scripts/Scripts/Utils/Defer.cs
+    - path: Scripts/Scripts/Patch/UIMouse.cs
+    - path: Scripts/Scripts/Patch/PlayerInput.cs
+    - path: Scripts/Scripts/Patch/PlayerController.cs
+    - path: Scripts/Scripts/CrossHotbarMod.cs
+    - path: Scripts/Scripts/Constants.cs
+    - path: Scripts/Feature/InventoryObjectSlotBar/InventoryObjectSlotBarUI.cs
+    - path: Scripts/Feature/InventoryObjectSlot/Patch/InventorySlotUI.cs
+    - path: Scripts/Feature/InventoryObjectSlot/InventoryObjectUtility.cs
+    - path: Scripts/Feature/InventoryObjectSlot/InventoryObjectSlotUI.cs
+    - path: Scripts/Feature/EquipAnySlot/Patch/PlayerController.cs
+    - path: Scripts/Feature/EquipAnySlot/EquipedSlotUI.cs
+    - path: Scripts/Feature/EquipAnySlot/AnySlotController.cs
+    dependencies: []
+  modPath: Assets\QuickHotbar\Assets
+  forceReimport: 1
+  buildBundles: 1
+  cacheBundles: 0
+  buildLinux: 1
+  assets: []
+  lastBuildLinux: 1
