@@ -46,12 +46,19 @@ namespace CrossHotbar {
             if (crossbarUI != null) {
                 Debug.LogError("CrossbarUI was already instantiated, dirty cleanup?");
             }
+            Debug.Log("Configuring QuickHotbar, instantiating prefabs");
             crossbarUI = InventoryObjectSlotBarUI.Create();
+            // Required, multiplayer has a two stage load, world exists before the player is fully 
+            // loaded at the character selection screen
+            Object.DontDestroyOnLoad(crossbarUI);
+
+            Debug.Log("Configuring QuickHotbar, integrating crossbar systems");
             var objectSlotBarUI = crossbarUI.GetComponent<InventoryObjectSlotBarUI>();
             Patch.UIMouse.SetSlotBarUIInstance(objectSlotBarUI);
             Patch.PlayerInput.SetSlotBarUIInstance(objectSlotBarUI);
             Patch.PlayerController.SetSlotBarUIInstance(objectSlotBarUI);
             Patch.PlayerController.OnPlayerOccupied += OnPlayerOccupied;
+            Debug.Log("Configuring QuickHotbar, integration finished");
         }
 
         private void OnWorldDestroyed() {
@@ -63,6 +70,9 @@ namespace CrossHotbar {
         }
 
         private void OnPlayerOccupied(PlayerController playerController) {
+            if (!playerController.isLocal) {
+                return;
+            }
             playerController.gameObject.ConfigureComponent<SlotBarIntegrationManager>(manager => {
                 manager.Integration = manager.gameObject.AddComponent<DefaultSlotBarIntegration>();
             });

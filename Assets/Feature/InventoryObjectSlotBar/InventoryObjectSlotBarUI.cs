@@ -13,13 +13,13 @@ namespace CrossHotbar.InventoryObjectSlotBar {
         private UIelement? targetedUI;
 
         public static GameObject Create() {
-            return ObjectExtension.InstantiateWith(Manager.ui.itemSlotsBar, clone => {
-                foreach (var slot in clone.itemSlots) {
+            return ObjectExtension.InstantiateWith(Manager.ui.itemSlotsBar, clonedSlotBarScript => {
+                foreach (var slot in clonedSlotBarScript.itemSlots) {
                     DestroyImmediate(slot.gameObject);
                 }
-                clone.itemSlots.Clear();
+                clonedSlotBarScript.itemSlots.Clear();
 
-                clone.gameObject
+                clonedSlotBarScript.gameObject
                     .ConfigureComponent<SortingGroup>(group => {
                         group.sortingLayerID = SortingLayerID.GUI;
                         group.sortingOrder = 20;
@@ -29,10 +29,10 @@ namespace CrossHotbar.InventoryObjectSlotBar {
                         {
                             slotPrefab.name = "Custom UI Slot Prefab";
                             slotPrefab.SetActive(false);
-                            slotPrefab.transform.SetParent(clone.gameObject.transform);
+                            slotPrefab.transform.SetParent(clonedSlotBarScript.gameObject.transform);
                         }
 
-                        hotbar.MixWith(clone);
+                        hotbar.MixWith(clonedSlotBarScript);
                         hotbar.itemSlotPrefab = slotPrefab.GetComponent<SlotUIBase>();
 
                         if (Manager.ui.playerInventoryUI is InventoryUI inventory) {
@@ -43,7 +43,7 @@ namespace CrossHotbar.InventoryObjectSlotBar {
                         }
                     });
 
-                DestroyImmediate(clone);
+                DestroyImmediate(clonedSlotBarScript);
             });
         }
 
