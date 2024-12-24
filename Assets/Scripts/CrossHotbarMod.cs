@@ -43,10 +43,9 @@ namespace CrossHotbar {
         bool IMod.CanBeUnloaded() => true;
 
         private void OnWorldCreated() {
-            if (crossbarUI != null) {
-                Debug.LogError("CrossbarUI was already instantiated, dirty cleanup?");
-            }
             Debug.Log("Configuring QuickHotbar, instantiating prefabs");
+
+            Debug.Assert(crossbarUI == null, "CrossbarUI was already instantiated, dirty cleanup?");
             crossbarUI = InventoryObjectSlotBarUI.Create();
             // Required, multiplayer has a two stage load, world exists before the player is fully 
             // loaded at the character selection screen
