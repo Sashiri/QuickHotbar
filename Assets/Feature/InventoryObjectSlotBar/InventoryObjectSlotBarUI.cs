@@ -14,6 +14,12 @@ namespace CrossHotbar.InventoryObjectSlotBar {
     partial class InventoryObjectSlotBarUI : ItemSlotsBarUI {
         public static GameObject Create(Action<int, InventoryObjectSlotUI>? onSlotInitialization = null) {
             return ObjectExtension.InstantiateWith(Manager.ui.itemSlotsBar, clonedSlotBarScript => {
+                // I dont know how to fix hotbar flicker on loading screen, after moving initialization
+                // from world to player occupation
+                // That's why the hotbar is faaar away from the screen, so that it wont matter
+                // Update changes the position anyway
+                clonedSlotBarScript.gameObject.transform.Translate(new Vector3(10000f, 10000f, 10000f));
+
                 foreach (var slot in clonedSlotBarScript.itemSlots) {
                     DestroyImmediate(slot.gameObject);
                 }
@@ -68,7 +74,7 @@ namespace CrossHotbar.InventoryObjectSlotBar {
         public override void Init() {
             base.Init();
 
-            for(var i = 0; i < itemSlots.Count; ++i) {
+            for (var i = 0; i < itemSlots.Count; ++i) {
                 if (itemSlots[i] is not null and InventoryObjectSlotUI objectSlotUI) {
                     InitializeSlotUI(i, objectSlotUI);
                 }
