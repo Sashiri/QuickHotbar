@@ -1,5 +1,7 @@
+using System;
 using System.Linq;
 using CrossHotbar.InventoryObjectSlot;
+using PugMod;
 using Unity.Properties;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -7,11 +9,7 @@ using UnityEngine.Rendering;
 #nullable enable
 
 namespace CrossHotbar.InventoryObjectSlotBar {
-    [GeneratePropertyBag]
     partial class InventoryObjectSlotBarUI : ItemSlotsBarUI {
-        public SpriteRenderer? backgroundSprite;
-        private UIelement? targetedUI;
-
         public static GameObject Create() {
             return ObjectExtension.InstantiateWith(Manager.ui.itemSlotsBar, clonedSlotBarScript => {
                 foreach (var slot in clonedSlotBarScript.itemSlots) {
@@ -47,6 +45,13 @@ namespace CrossHotbar.InventoryObjectSlotBar {
             });
         }
 
+        public SpriteRenderer? backgroundSprite;
+        private GameObject _visibilityTracker;
+
+        private void Start() {
+            _visibilityTracker = new("Visibility Tracker");
+        }
+
         public override void Init() {
             base.Init();
 
@@ -60,28 +65,41 @@ namespace CrossHotbar.InventoryObjectSlotBar {
             }
         }
 
-        protected override void LateUpdate() {
-            base.LateUpdate();
+        // Have mercy on my soul, it's private and we dont want to redeclare logic
+        // ItemSlotsRoot cannot be reenabled, it causes Unity to drop update for contained slots
+        private void Update() {
+            // Workaround for root reenabling, track how it would behave and then apply
+            var rootTemp = itemSlotsRoot;
+            itemSlotsRoot = _visibilityTracker;
+            Patch.ItemSlotsBarUI.Update(this);
+            itemSlotsRoot = rootTemp;
 
             var crossHotbarKeyDown = Input.GetKey(KeyCode.LeftControl);
-            if (backgroundSprite != null) {
-                backgroundSprite.gameObject.SetActive(false);
-            }
+
             if (!crossHotbarKeyDown) {
-                itemSlotsRoot.SetActive(false);
+                if (itemSlotsRoot.activeSelf) {
+                    itemSlotsRoot.SetActive(false);
+                }
+                return;
             }
-            else if (Manager.ui.isAnyInventoryShowing && crossHotbarKeyDown) {
+
+            if (Manager.ui.isAnyInventoryShowing) {
                 UpdateInInventory();
             }
-            UpdatePosition();
+            else {
+                UpdateInGame();
+            }
         }
 
+        /// <summary>
+        /// Tries to show hotbar above any player's inventory slot
+        /// </summary>
         private void UpdateInInventory() {
             Ray ray = new(Manager.ui.mouse.pointer.transform.position + Vector3.back * 5f, Vector3.forward);
 
             RaycastHit[] raycastHitsNoSpan = new RaycastHit[8];
             var hits = Physics.SphereCastNonAlloc(ray, Constants.PIXEL_STEP * 1.5f, raycastHitsNoSpan, 10f, ObjectLayerID.UILayerMask);
-            targetedUI = raycastHitsNoSpan.Take(hits)
+            var targetedUI = raycastHitsNoSpan.Take(hits)
                 .Select(hit => (hit.distance, ui: hit.collider.GetComponent<UIelement>()))
                 .Where(v =>
                     v.ui.isVisibleOnScreen
@@ -92,22 +110,34 @@ namespace CrossHotbar.InventoryObjectSlotBar {
                 .FirstOrDefault().ui as InventorySlotUI;
 
             if (targetedUI == null) {
+                // Brain lag, could be implemented better, rn just apply the visibility
+                if (itemSlotsRoot.activeSelf != _visibilityTracker.activeSelf) {
+                    itemSlotsRoot.SetActive(_visibilityTracker.activeSelf);
+                }
                 return;
             }
 
+            // We have all informations and prerequisites to show the hotbar
             itemSlotsRoot.SetActive(true);
+
+            var offset = Vector3.up * spread + (new Vector3(0, 2, -2) * Constants.PIXEL_STEP);
+            transform.position = Vector3.Scale(targetedUI.transform.position, Vector3.up) + offset;
+
+
             if (backgroundSprite != null) {
                 backgroundSprite.gameObject.SetActive(true);
             }
         }
 
-        public void UpdatePosition() {
-            if (Manager.ui.isAnyInventoryShowing && itemSlotsRoot.activeInHierarchy && targetedUI != null) {
-                var offset = Vector3.up * spread + (new Vector3(0, 2, -2) * Constants.PIXEL_STEP);
-                transform.position = Vector3.Scale(targetedUI.transform.position, Vector3.up) + offset;
+        private void UpdateInGame() {
+            // Brain lag, could be implemented better, rn just apply the visibility
+            if (itemSlotsRoot.activeSelf != _visibilityTracker.activeSelf) {
+                itemSlotsRoot.SetActive(_visibilityTracker.activeSelf);
             }
-            else {
-                transform.position = Manager.ui.itemSlotsBar.transform.position + (new Vector3(1, 2, -2) * Constants.PIXEL_STEP);
+            transform.position = Manager.ui.itemSlotsBar.transform.position + (new Vector3(1, 2, -2) * Constants.PIXEL_STEP);
+
+            if (backgroundSprite != null) {
+                backgroundSprite.gameObject.SetActive(false);
             }
         }
 

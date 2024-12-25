@@ -33,6 +33,7 @@ MonoBehaviour:
     - path: Scripts/Scripts/Patch/PlayerController.cs
     - path: Scripts/Scripts/CrossHotbarMod.cs
     - path: Scripts/Scripts/Constants.cs
+    - path: Scripts/Feature/InventoryObjectSlotBar/Patch/ItemSlotsBarUI.cs
     - path: Scripts/Feature/InventoryObjectSlotBar/InventoryObjectSlotBarUI.cs
     - path: Scripts/Feature/InventoryObjectSlot/Patch/InventorySlotUI.cs
     - path: Scripts/Feature/InventoryObjectSlot/InventoryObjectUtility.cs
