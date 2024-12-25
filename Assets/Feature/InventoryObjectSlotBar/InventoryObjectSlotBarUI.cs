@@ -46,7 +46,7 @@ namespace CrossHotbar.InventoryObjectSlotBar {
         }
 
         public SpriteRenderer? backgroundSprite;
-        private GameObject _visibilityTracker;
+        private readonly GameObject _visibilityTracker = new("Visibility Tracker");
 
         protected virtual void Start() {
             _visibilityTracker.transform.parent = gameObject.transform;
