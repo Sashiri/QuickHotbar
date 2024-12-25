@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Text.Json;
 using CrossHotbar.EquipAnySlot;
 using CrossHotbar.InventoryObjectSlotBar;
 using PugMod;
 using Unity.Properties;
 using UnityEngine;
+
+#nullable enable
 
 [assembly: GeneratePropertyBagsForAssembly]
 
@@ -19,9 +21,13 @@ static class ModBundles {
 namespace CrossHotbar {
 
     public class CrossHotbarMod : IMod {
-        private GameObject crossbarUI;
+        private GameObject? crossbarUI;
+#pragma warning disable CS8618 // Initialized in Early init.
+        private LoadedMod info;
+#pragma warning restore CS8618
 
         void IMod.EarlyInit() {
+            info = API.ModLoader.LoadedMods.First(m => m.Handlers.Contains(this));
         }
 
         void IMod.Init() {
@@ -46,17 +52,21 @@ namespace CrossHotbar {
             Debug.Log("Configuring QuickHotbar, instantiating prefabs");
 
             Debug.Assert(crossbarUI == null, "CrossbarUI was already instantiated, dirty cleanup?");
-            crossbarUI = InventoryObjectSlotBarUI.Create();
+
+            crossbarUI = InventoryObjectSlotBarUI.Create(OnTrackableSlotInitialization);
+
             // Required, multiplayer has a two stage load, world exists before the player is fully 
-            // loaded at the character selection screen
+            // loaded at the section selection screen
             Object.DontDestroyOnLoad(crossbarUI);
 
             Debug.Log("Configuring QuickHotbar, integrating crossbar systems");
+
             var objectSlotBarUI = crossbarUI.GetComponent<InventoryObjectSlotBarUI>();
             Patch.UIMouse.SetSlotBarUIInstance(objectSlotBarUI);
             Patch.PlayerInput.SetSlotBarUIInstance(objectSlotBarUI);
             Patch.PlayerController.SetSlotBarUIInstance(objectSlotBarUI);
             Patch.PlayerController.OnPlayerOccupied += OnPlayerOccupied;
+
             Debug.Log("Configuring QuickHotbar, integration finished");
         }
 
@@ -76,6 +86,37 @@ namespace CrossHotbar {
                 manager.Integration = manager.gameObject.AddComponent<DefaultSlotBarIntegration>();
             });
         }
+
+        private void OnTrackableSlotInitialization(int index, InventoryObjectSlot.InventoryObjectSlotUI slotUI) {
+            var characterId = Manager.saves.GetCharacterId();
+            if (TryLoadSlotForCharacter(characterId, index, out var tracker)) {
+                slotUI.UpdateSlot(tracker);
+            }
+
+            slotUI.OnTrackingChanged += (tracker) => SaveSlotForCharacter(characterId, index, tracker);
+        }
+
+        private bool TryLoadSlotForCharacter(int characterId, int index, out InventoryObjectSlot.InventoryObjectTracker tracker) {
+            tracker = default;
+            var mod = info.ModId.ToString();
+            var section = characterId.ToString();
+            var key = index.ToString();
+
+            if (API.Config.TryGet(mod, section, key, out string config)) {
+                tracker = JsonSerializer.Deserialize<InventoryObjectSlot.InventoryObjectTracker>(config);
+                return true;
+            }
+            return false;
+        }
+
+        private void SaveSlotForCharacter(int characterId, int index, InventoryObjectSlot.InventoryObjectTracker tracker) {
+            var mod = info.ModId.ToString();
+            var section = characterId.ToString();
+            var key = index.ToString();
+
+            API.Config.Set(info.ModId.ToString(), characterId.ToString(), index.ToString(), JsonSerializer.Serialize(tracker));
+        }
     }
 
 }
+

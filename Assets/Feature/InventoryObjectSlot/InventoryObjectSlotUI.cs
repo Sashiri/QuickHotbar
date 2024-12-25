@@ -6,6 +6,7 @@ using UnityEngine;
 #nullable enable
 
 namespace CrossHotbar.InventoryObjectSlot {
+    [GeneratePropertyBag]
     internal partial class InventoryObjectSlotUI : EquipmentSlotUI {
         public static GameObject Create() {
             var prefab = Manager.ui.itemSlotsBar.itemSlotPrefab;
@@ -21,25 +22,22 @@ namespace CrossHotbar.InventoryObjectSlot {
             });
         }
 
-        
-
         internal const int NOT_FOUND = -404;
         public string ButtonNumber { get; set; } = string.Empty;
-        public InventoryObjectTracker SlotTracker { get; private set; }
+        public InventoryObjectTracker SlotTracker { get; private set; } = new(ObjectID.None, new(null));
 
         public void UpdateSlot(InventoryObjectTracker objectTracker) {
             SlotTracker = objectTracker;
-            OnTrackingChanged?.Invoke();
+            OnTrackingChanged?.Invoke(objectTracker);
             UpdateSlot();
         }
-        
+
         /// <summary>
         /// UI can be hit casted from anywhere and exists as an entity in the world
         /// we could make <see cref="TrackedObject"/> private but it would only make
         /// the code less readable
         /// </summary>
-        internal event Action? OnTrackingChanged;
-
+        internal event Action<InventoryObjectTracker>? OnTrackingChanged;
 
         protected void MixWith(InventorySlotUI original) {
             PropertyContainer.Accept(new ClonePropertiesVisitor<InventorySlotUI>(this), original);
@@ -81,12 +79,18 @@ namespace CrossHotbar.InventoryObjectSlot {
 
             RenderButtonNumber();
 
+            if (SlotTracker.ObjectID is ObjectID.None) {
+                HideHint();
+                return;
+            }
+
             var data = GetSlotObject();
-            if (SlotTracker.ObjectID != ObjectID.None && data.objectID == ObjectID.None) {
-                ShowHint(new ObjectDataCD {
+            if (data.objectID is ObjectID.None) {
+                var itemCD = new ObjectDataCD {
                     objectID = SlotTracker.ObjectID,
                     amount = 1
-                }, false, _itemIsRequired: true);
+                };
+                ShowHint(itemCD, false, _itemIsRequired: true);
             }
         }
 

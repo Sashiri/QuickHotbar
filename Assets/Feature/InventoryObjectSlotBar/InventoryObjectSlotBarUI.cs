@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using CrossHotbar.InventoryObjectSlot;
 using PugMod;
+using Unity.Entities.UniversalDelegates;
 using Unity.Properties;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -9,8 +10,9 @@ using UnityEngine.Rendering;
 #nullable enable
 
 namespace CrossHotbar.InventoryObjectSlotBar {
+    [GeneratePropertyBag]
     partial class InventoryObjectSlotBarUI : ItemSlotsBarUI {
-        public static GameObject Create() {
+        public static GameObject Create(Action<int, InventoryObjectSlotUI>? onSlotInitialization = null) {
             return ObjectExtension.InstantiateWith(Manager.ui.itemSlotsBar, clonedSlotBarScript => {
                 foreach (var slot in clonedSlotBarScript.itemSlots) {
                     DestroyImmediate(slot.gameObject);
@@ -31,6 +33,9 @@ namespace CrossHotbar.InventoryObjectSlotBar {
                         }
 
                         hotbar.MixWith(clonedSlotBarScript);
+                        if (onSlotInitialization != null) {
+                            hotbar.OnSlotInitialization += onSlotInitialization;
+                        }
                         hotbar.itemSlotPrefab = slotPrefab.GetComponent<SlotUIBase>();
 
                         if (Manager.ui.playerInventoryUI is InventoryUI inventory) {
@@ -48,6 +53,11 @@ namespace CrossHotbar.InventoryObjectSlotBar {
         public SpriteRenderer? backgroundSprite;
         private readonly GameObject _visibilityTracker = new("Visibility Tracker");
 
+        /// <summary>
+        /// Called with both index of the slot and slot itself
+        /// </summary>
+        public event Action<int, InventoryObjectSlotUI>? OnSlotInitialization;
+
         protected virtual void Start() {
             _visibilityTracker.transform.parent = gameObject.transform;
         }
@@ -58,14 +68,17 @@ namespace CrossHotbar.InventoryObjectSlotBar {
         public override void Init() {
             base.Init();
 
-            foreach (var (i, slotUI) in itemSlots.Enumerate()) {
-                if (slotUI == null || slotUI is not InventoryObjectSlotUI objectSlotUI) {
-                    continue;
+            for(var i = 0; i < itemSlots.Count; ++i) {
+                if (itemSlots[i] is not null and InventoryObjectSlotUI objectSlotUI) {
+                    InitializeSlotUI(i, objectSlotUI);
                 }
-
-                objectSlotUI.UpdateSlot();
-                objectSlotUI.ButtonNumber = ((i + 1) % 10).ToString();
             }
+        }
+
+        private void InitializeSlotUI(int index, InventoryObjectSlotUI slotUI) {
+            slotUI.ButtonNumber = ((index + 1) % 10).ToString();
+            slotUI.UpdateSlot();
+            OnSlotInitialization?.Invoke(index, slotUI);
         }
 
         // Have mercy on my soul, it's private and we dont want to redeclare logic
