@@ -1,8 +1,7 @@
+using CrossHotbar.InventoryObjectSlot;
 using Unity.Entities;
 
 internal static class InventoryObjectUtility {
-    internal record TrackingPreference(int Variation);
-
 
     /// <summary>
     /// Finds the first object in the item buffer with preference for tracking parameters
@@ -13,7 +12,7 @@ internal static class InventoryObjectUtility {
     /// <param name="databaseBankCD"></param>
     /// <param name="excludeIndex"></param>
     /// <returns></returns>
-    internal static int FindFirstOccurenceOfTrackedObject(ObjectID objectID, TrackingPreference preference, DynamicBuffer<ContainedObjectsBuffer> containedObjectsBuffers, PugDatabase.DatabaseBankCD databaseBankCD, int excludeIndex = -1) {
+    internal static int FindFirstOccurenceOfTrackedObject(ObjectID objectID, TrackingOptions preference, DynamicBuffer<ContainedObjectsBuffer> containedObjectsBuffers, PugDatabase.DatabaseBankCD databaseBankCD, int excludeIndex = -1) {
         const int NOT_FOUND = -1;
         var firstOccurenceIndex = NOT_FOUND;
 
@@ -30,7 +29,7 @@ internal static class InventoryObjectUtility {
             }
 
             // We dont have any preference, any match is good
-            if (preference.Variation == 0) {
+            if (preference.Variation == null) {
                 return i;
             }
 

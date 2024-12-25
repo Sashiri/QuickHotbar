@@ -110,7 +110,7 @@ namespace CrossHotbar.EquipAnySlot {
                 PlayerControllerAccessor.SetEquippedSlotIndex(playerController, slotController.GetSlot().inventoryIndexReference);
                 if (equipedSlotUI != null && equipedSlotUI.GetEquipmentSlot(0) is InventoryObjectSlotUI inventoryObjectSlot) {
                     var equipped = playerController.GetEquippedSlot().objectData;
-                    inventoryObjectSlot.SetTrackedObject(equipped.objectID, new(equipped.variation));
+                    inventoryObjectSlot.UpdateSlot(new(equipped.objectID, new(equipped.variation)));
                 }
             }
         }

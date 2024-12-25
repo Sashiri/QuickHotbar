@@ -21,13 +21,11 @@ namespace CrossHotbar.InventoryObjectSlot {
             });
         }
 
-        public void SetTrackedObject(ObjectID objectID, InventoryObjectUtility.TrackingPreference preference) {
-            _objectID = objectID;
-            _trackingPreference = preference;
-        }
+        
 
         internal const int NOT_FOUND = -404;
         public string ButtonNumber { get; set; } = string.Empty;
+        public InventoryObjectTracker SlotTracker { get; private set; }
 
         public void UpdateSlot(InventoryObjectTracker objectTracker) {
             SlotTracker = objectTracker;
@@ -42,8 +40,7 @@ namespace CrossHotbar.InventoryObjectSlot {
         /// </summary>
         internal event Action? OnTrackingChanged;
 
-        private ObjectID _objectID;
-        private InventoryObjectUtility.TrackingPreference _trackingPreference = new(Variation: 0);
+
         protected void MixWith(InventorySlotUI original) {
             PropertyContainer.Accept(new ClonePropertiesVisitor<InventorySlotUI>(this), original);
             float alpha = 2 * darkBackground.color.a - MathF.Pow(darkBackground.color.a, 2);
@@ -85,16 +82,16 @@ namespace CrossHotbar.InventoryObjectSlot {
             RenderButtonNumber();
 
             var data = GetSlotObject();
-            if (_objectID != ObjectID.None && data.objectID == ObjectID.None) {
+            if (SlotTracker.ObjectID != ObjectID.None && data.objectID == ObjectID.None) {
                 ShowHint(new ObjectDataCD {
-                    objectID = _objectID,
+                    objectID = SlotTracker.ObjectID,
                     amount = 1
                 }, false, _itemIsRequired: true);
             }
         }
 
         private void UpdateVisibleSlotIndex() {
-            if (_objectID == ObjectID.None) {
+            if (SlotTracker.ObjectID == ObjectID.None) {
                 visibleSlotIndex = NOT_FOUND;
                 return;
             }
@@ -113,7 +110,7 @@ namespace CrossHotbar.InventoryObjectSlot {
             var databaseBank = API.Client.GetEntityQuery(typeof(PugDatabase.DatabaseBankCD))
                 .GetSingleton<PugDatabase.DatabaseBankCD>();
 
-            var slotIndex = InventoryObjectUtility.FindFirstOccurenceOfTrackedObject(_objectID, _trackingPreference, items, databaseBank);
+            var slotIndex = InventoryObjectUtility.FindFirstOccurenceOfTrackedObject(SlotTracker.ObjectID, SlotTracker.Tracking, items, databaseBank);
             if (slotIndex < inventoryHandler.startPosInBuffer || slotIndex > inventoryHandler.startPosInBuffer + inventoryHandler.size) {
                 visibleSlotIndex = NOT_FOUND;
                 return;
