@@ -6,8 +6,6 @@ using UnityEngine;
 #nullable enable
 
 namespace CrossHotbar.InventoryObjectSlot {
-
-    [GeneratePropertyBag]
     internal partial class InventoryObjectSlotUI : EquipmentSlotUI {
         public static GameObject Create() {
             var prefab = Manager.ui.itemSlotsBar.itemSlotPrefab;
@@ -28,8 +26,21 @@ namespace CrossHotbar.InventoryObjectSlot {
             _trackingPreference = preference;
         }
 
+        internal const int NOT_FOUND = -404;
         public string ButtonNumber { get; set; } = string.Empty;
 
+        public void UpdateSlot(InventoryObjectTracker objectTracker) {
+            SlotTracker = objectTracker;
+            OnTrackingChanged?.Invoke();
+            UpdateSlot();
+        }
+        
+        /// <summary>
+        /// UI can be hit casted from anywhere and exists as an entity in the world
+        /// we could make <see cref="TrackedObject"/> private but it would only make
+        /// the code less readable
+        /// </summary>
+        internal event Action? OnTrackingChanged;
 
         private ObjectID _objectID;
         private InventoryObjectUtility.TrackingPreference _trackingPreference = new(Variation: 0);
@@ -38,9 +49,6 @@ namespace CrossHotbar.InventoryObjectSlot {
             float alpha = 2 * darkBackground.color.a - MathF.Pow(darkBackground.color.a, 2);
             darkBackground.color = darkBackground.color.ColorWithNewAlpha(alpha);
         }
-
-        internal const int NOT_FOUND = -404;
-
 
         /// <summary>
         /// Handle <see cref="NOT_FOUND"/> slot index, this is a result of using visible slot index as dynamic lookup variable

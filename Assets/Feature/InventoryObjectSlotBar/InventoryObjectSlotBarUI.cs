@@ -48,8 +48,11 @@ namespace CrossHotbar.InventoryObjectSlotBar {
         public SpriteRenderer? backgroundSprite;
         private GameObject _visibilityTracker;
 
-        private void Start() {
-            _visibilityTracker = new("Visibility Tracker");
+        protected virtual void Start() {
+            _visibilityTracker.transform.parent = gameObject.transform;
+        }
+        private void MixWith(ItemSlotsBarUI original) {
+            PropertyContainer.Accept(new ClonePropertiesVisitor<ItemSlotsBarUI>(this), original);
         }
 
         public override void Init() {
@@ -139,10 +142,6 @@ namespace CrossHotbar.InventoryObjectSlotBar {
             if (backgroundSprite != null) {
                 backgroundSprite.gameObject.SetActive(false);
             }
-        }
-
-        internal void MixWith(ItemSlotsBarUI original) {
-            PropertyContainer.Accept(new ClonePropertiesVisitor<ItemSlotsBarUI>(this), original);
         }
     }
 }

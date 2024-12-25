@@ -43,12 +43,12 @@ namespace CrossHotbar.Patch {
                         return;
                     }
 
-                    var buffer = objectSlot.GetContainedObject();
-                    if (buffer.objectID == ObjectID.None) {
+                    if (!objectSlot.gameObject.activeInHierarchy) {
                         return;
                     }
 
-                    if (!objectSlot.gameObject.activeInHierarchy) {
+                    var buffer = objectSlot.GetContainedObject();
+                    if (buffer.objectID == ObjectID.None) {
                         return;
                     }
 
