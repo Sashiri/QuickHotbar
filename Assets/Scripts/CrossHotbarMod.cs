@@ -49,25 +49,7 @@ namespace CrossHotbar {
         bool IMod.CanBeUnloaded() => true;
 
         private void OnWorldCreated() {
-            Debug.Log("Configuring QuickHotbar, instantiating prefabs");
-
-            Debug.Assert(crossbarUI == null, "CrossbarUI was already instantiated, dirty cleanup?");
-
-            crossbarUI = InventoryObjectSlotBarUI.Create(OnTrackableSlotInitialization);
-
-            // Required, multiplayer has a two stage load, world exists before the player is fully 
-            // loaded at the section selection screen
-            Object.DontDestroyOnLoad(crossbarUI);
-
-            Debug.Log("Configuring QuickHotbar, integrating crossbar systems");
-
-            var objectSlotBarUI = crossbarUI.GetComponent<InventoryObjectSlotBarUI>();
-            Patch.UIMouse.SetSlotBarUIInstance(objectSlotBarUI);
-            Patch.PlayerInput.SetSlotBarUIInstance(objectSlotBarUI);
-            Patch.PlayerController.SetSlotBarUIInstance(objectSlotBarUI);
             Patch.PlayerController.OnPlayerOccupied += OnPlayerOccupied;
-
-            Debug.Log("Configuring QuickHotbar, integration finished");
         }
 
         private void OnWorldDestroyed() {
@@ -82,6 +64,23 @@ namespace CrossHotbar {
             if (!playerController.isLocal) {
                 return;
             }
+
+            Debug.Log("Configuring QuickHotbar, instantiating prefabs");
+
+            Debug.Assert(crossbarUI == null, "CrossbarUI was already instantiated, dirty cleanup?");
+
+            crossbarUI = InventoryObjectSlotBarUI.Create(OnTrackableSlotInitialization);
+            Object.DontDestroyOnLoad(crossbarUI);
+
+            Debug.Log("Configuring QuickHotbar, integrating crossbar systems");
+
+            var objectSlotBarUI = crossbarUI.GetComponent<InventoryObjectSlotBarUI>();
+            Patch.UIMouse.SetSlotBarUIInstance(objectSlotBarUI);
+            Patch.PlayerInput.SetSlotBarUIInstance(objectSlotBarUI);
+            Patch.PlayerController.SetSlotBarUIInstance(objectSlotBarUI);
+
+            Debug.Log("Configuring QuickHotbar, integration finished");
+
             playerController.gameObject.ConfigureComponent<SlotBarIntegrationManager>(manager => {
                 manager.Integration = manager.gameObject.AddComponent<DefaultSlotBarIntegration>();
             });
