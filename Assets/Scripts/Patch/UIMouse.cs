@@ -48,7 +48,7 @@ namespace CrossHotbar.Patch {
             }
 
             var item = slotToSwapWith.GetObjectData();
-            objectSlot.UpdateSlot(new(item.objectID, new(item.variation)));
+            objectSlot.UpdateSlot(InventoryObjectTracker.FromObjectData(item));
         }
 
     }

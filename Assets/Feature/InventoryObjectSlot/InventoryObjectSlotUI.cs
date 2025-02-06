@@ -94,6 +94,23 @@ namespace CrossHotbar.InventoryObjectSlot {
             }
         }
 
+        /// <summary>
+        /// Handle mouse interaction, reassign item id instead of slot move
+        /// </summary>
+        /// <param name="mod1"></param>
+        /// <param name="mod2"></param>
+        public override void OnLeftClicked(bool mod1, bool mod2) {
+            var mouse = Manager.ui.mouse;
+            if (mouse.isHoldingAnyEntity) {
+                ObjectDataCD heldItem = mouse.mouseInventory.GetObjectData(0);
+                UpdateSlot(InventoryObjectTracker.FromObjectData(heldItem));
+                mouse.ReleaseGrabbedItemBackToInventory();
+
+                return;
+            }
+            base.OnLeftClicked(mod1, mod2);
+        }
+
         private void UpdateVisibleSlotIndex() {
             if (SlotTracker.ObjectID == ObjectID.None) {
                 visibleSlotIndex = NOT_FOUND;

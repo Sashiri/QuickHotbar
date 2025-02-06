@@ -21,6 +21,13 @@ namespace CrossHotbar.InventoryObjectSlot {
             Tracking = tracking;
         }
 
+        public static InventoryObjectTracker FromObjectData(ObjectData objectData) {
+            return new(
+                objectID: objectData.objectID,
+                new(variation: objectData.variation)
+            );
+        }
+
         public int Version { get; init; }
         public ObjectID ObjectID { get; init; }
         public TrackingOptions Tracking { get; init; }
